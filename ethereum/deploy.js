@@ -12,8 +12,11 @@
 require("dotenv").config({path: "../.env"}); // This is a library that allows us to use environment variables.
 const HDWalletProvider = require("@truffle/hdwallet-provider"); // This is a library that allows us to connect to a network using a mnemonic, and it will unlock the first account that is generated from that mnemonic.
 const Web3 = require("web3"); // This is a library that allows us to interact with the Ethereum network.
+const fs = require("fs");
 const compiledFactory = require("./build/InheritanceFactory.json"); // This is the compiled contract that we want to deploy.
 const titleDeed = require("./build/TitleDeed.json");
+const heirsAdministration = require("./build/HeirsAdministration.json");
+const USDC_GOERLI_ADDRESS = process.env.USDC_TOKEN_ADDRESS;
 
 const mnemonic = process.env.MNEMONIC; // This is the mnemonic that we will use to connect to the network.
 const serverUrl = process.env.SERVER_URL; // This is the url of the network that we want to connect to.
@@ -32,17 +35,28 @@ const deploy = async () => {
     const resultFactory = await new web3.eth.Contract(compiledFactory.abi)
         .deploy({ data: compiledFactory.evm.bytecode.object })
         .send({ gas: "10000000", from: accounts[0] });
-
-    console.log(compiledFactory.abi);
     console.log("Factory contract deployed to", resultFactory.options.address);
 
     const resultTitleDeed = await new web3.eth.Contract(titleDeed.abi) 
         .deploy({ data: titleDeed.evm.bytecode.object })
         .send({ gas: "10000000", from: accounts[0] });
-
     console.log("TitleDeed contract deployed to", resultTitleDeed.options.address);
+
+    const resultHeirsAdministration = await new web3.eth.Contract(heirsAdministration.abi)
+        .deploy({ data: heirsAdministration.evm.bytecode.object })
+        .send({ gas: "10000000", from: accounts[0] });
+    console.log("HeirsAdministration contract deployed to", resultHeirsAdministration.options.address);
     
     provider.engine.stop(); // To prevent a hanging deployment.
+
+    fs.writeFile(
+        "../.env.local",
+        `NEXT_PUBLIC_FACTORY_ADDRESS=${resultFactory.options.address}\nNEXT_PUBLIC_TITLE_DEED_ADDRESS=${resultTitleDeed.options.address}\nNEXT_PUBLIC_HEIRS_ADMINISTRATION_ADDRESS=${resultHeirsAdministration.options.address}\nNEXT_PUBLIC_USDC_GOERLI_ADDRESS=${USDC_GOERLI_ADDRESS}`,
+        (err) => {
+          if (err) throw err;
+          console.log("Addresses written to .env.local");
+        }
+    );
 };
 
 deploy();

@@ -1,7 +1,7 @@
 const assert = require('assert');
 const ganache = require('ganache-cli');
 const Web3 = require('web3');
-const web3 = new Web3(ganache.provider({ gasLimit: 100000000 })); 
+const web3 = new Web3(ganache.provider({ gasLimit: 100000000 }));
 
 // We get both of the compiled contracts from Inheritance.sol, located in build folder.
 const compiledFactory = require("../ethereum/build/InheritanceFactory.json");
@@ -66,7 +66,7 @@ describe("Inheritance Factory contract", async () => {
             assert.strictEqual(event[0].returnValues[2], inheritanceAddress);
             assert.strictEqual(Number(event[0].returnValues[3]), 1);
         });
-        
+
         it("returns the number of deployed inheritances", async () => {
             const count = await factory.methods.getDeployedInheritancesCount().call();
             assert.strictEqual(Number(count), 1);
@@ -74,8 +74,16 @@ describe("Inheritance Factory contract", async () => {
 
         it("marks caller as the inheritance administrator", async () => {
             const administrator = await inheritance.methods.administrator().call();
-            
+
             assert.strictEqual(accounts[0], administrator.administratorAddress);
+        });
+
+        it("returns true when the caller is an inheritance administrator and false otherwise", async () => {
+            const isAdmin = await factory.methods.isAdmin().call({ from: accounts[0] });
+            assert.strictEqual(isAdmin, true, "The caller should be an inheritance administrator.");
+        
+            const isAdmin2 = await factory.methods.isAdmin().call({ from: accounts[1] });
+            assert.strictEqual(isAdmin2, false, "The caller should not be an inheritance administrator.");
         });
     });
 });
@@ -87,7 +95,7 @@ describe("Inheritance contract", async () => {
             const administrator = await inheritance.methods.administrator().call();
             assert.strictEqual(administrator.administratorAddress, accounts[0]);
         });
-        
+
         it("sets the alive timeout correctly", async () => {
             const aliveTimeout = await inheritance.methods.getAliveTimeOut().call();
             assert.strictEqual(Number(aliveTimeout), 180);
@@ -101,7 +109,7 @@ describe("Inheritance contract", async () => {
             const tx = await inheritance.methods.deposit().send({ from: accounts[1], value: value });
             const balance = await web3.eth.getBalance(inheritanceAddress);
             assert.strictEqual(balance, value);
-        
+
             // get the emitted event
             const logDepositEvent = tx.events.LogDeposit;
 
@@ -111,7 +119,7 @@ describe("Inheritance contract", async () => {
             assert.strictEqual(logDepositEvent.returnValues[1], administrator.administratorAddress);
             assert.strictEqual(logDepositEvent.returnValues[2], value);
             assert.strictEqual(logDepositEvent.returnValues[3], balance);
-          });
+        });
     });
 
     //WITHDRAW FUNCTIONS
@@ -165,37 +173,37 @@ describe("Inheritance contract", async () => {
 
             it("allows the administrator to withdraw USDC tokens", async () => {
                 const amount = "100";
-        
+
                 // Get the contract USDC token balance before withdrawal.
                 let balanceBeforeWithdrawal = await usdcTokenInstance.methods.balanceOf(inheritanceAddress).call();
-        
+
                 // Withdraw USDC tokens.
                 let tx = await inheritance.methods.withdrawUSDC(amount).send({ from: accounts[0] });
-        
+
                 // Get the contract USDC token balance after withdrawal.
                 let balanceAfterWithdrawal = await usdcTokenInstance.methods.balanceOf(inheritanceAddress).call();
-        
+
                 // Get the difference in USDC token balance.
                 let difference = balanceBeforeWithdrawal - balanceAfterWithdrawal;
-                
+
                 assert(difference > amount);
             });
 
             it("does not allow non-administrators to withdraw USDC tokens", async () => {
                 const amount = "100000";
-        
+
                 // Get the contract USDC token balance before withdrawal.
                 let balanceBeforeWithdrawal = await usdcTokenInstance.methods.balanceOf(inheritanceAddress).call();
-        
+
                 // Try to withdraw USDC tokens as non-administrator.
                 await assert.rejects(
                     inheritance.methods.withdrawUSDC(amount).send({ from: accounts[1] }),
                     /revert/
                 );
-        
+
                 // Get the contract USDC token balance after withdrawal attempt.
                 let balanceAfterWithdrawal = await usdcTokenInstance.methods.balanceOf(inheritanceAddress).call();
-        
+
                 assert.strictEqual(balanceBeforeWithdrawal, balanceAfterWithdrawal);
             });
         });
@@ -210,7 +218,7 @@ describe("Inheritance contract", async () => {
             const aliveTimeout = await inheritance.methods.getAliveTimeOut().call();
             assert.strictEqual(Number(aliveTimeout), newAliveTimeout);
         });
-        
+
         it("does not allow non-administrators to update the alive timeout", async () => {
             const newAliveTimeout = 360;
             await assert.rejects(
@@ -249,7 +257,7 @@ describe("Inheritance contract", async () => {
             assert.strictEqual(event.event, "LogAdministratorAlive");
         });
 
-        
+
         it("should emit LogAdministratorAlive event with correct data", async () => {
             const aliveTimeOut = await inheritance.methods.getAliveTimeOut().call();
             const tx = await inheritance.methods.signalAlive().send({ from: accounts[0] });
@@ -260,7 +268,7 @@ describe("Inheritance contract", async () => {
             assert.strictEqual(event.returnValues[1], accounts[0]);
             assert.strictEqual(event.returnValues[4], aliveTimeOut);
         });
-        
+
     });
 
     describe("requestInheritance", async () => {
@@ -278,7 +286,7 @@ describe("Inheritance contract", async () => {
             assert.strictEqual(newLength, oldLength + 1);
             assert.strictEqual(inheritanceRequests[newLength - 1], accounts[2]);
         });
-        
+
         it("should emit LogRequestToBeHeir event", async () => {
             const tx = await inheritance.methods.requestInheritance().send({ from: accounts[2] });
             const event = tx.events.LogRequestToBeHeir;
@@ -365,11 +373,11 @@ describe("Inheritance contract", async () => {
         });
 
         it("should revert if the address already exists in heirs array", async () => {
-            await inheritance.methods.acceptInheritanceRequest(index, accounts[2], share).send({ from: accounts[0], gas: "10000000"  });
+            await inheritance.methods.acceptInheritanceRequest(index, accounts[2], share).send({ from: accounts[0], gas: "10000000" });
 
             await inheritance.methods.requestInheritance().send({ from: accounts[2], gas: "10000000" });
             await assert.rejects(
-                inheritance.methods.acceptInheritanceRequest(index, accounts[2], share).send({ from: accounts[0], gas: "10000000"  }),
+                inheritance.methods.acceptInheritanceRequest(index, accounts[2], share).send({ from: accounts[0], gas: "10000000" }),
                 /Address already exists in heirs array./
             );
         });
@@ -377,9 +385,9 @@ describe("Inheritance contract", async () => {
         it("should revert if the amount of shares exceed the 100% of the Inheritance", async () => {
             const totalShares = await inheritance.methods.getTotalShares().call();
             const remainingShares = 100 - totalShares;
-                
+
             await assert.rejects(
-                inheritance.methods.acceptInheritanceRequest(0, accounts[2], remainingShares + 1).send({ from: accounts[0], gas: "10000000"  }),
+                inheritance.methods.acceptInheritanceRequest(0, accounts[2], remainingShares + 1).send({ from: accounts[0], gas: "10000000" }),
                 /the amount of shares exceed the 100% of the Inheritance./
             );
         });
@@ -400,18 +408,18 @@ describe("Inheritance contract", async () => {
         it("should remove the request from the inheritanceRequests array and emit LogHeirRejected event", async () => {
             const requester = inheritanceRequests[index];
             const oldLength = inheritanceRequests.length;
-        
+
             const tx = await inheritance.methods.rejectInheritanceRequest(index, requester).send({ from: accounts[0], gas: "10000000" });
-        
+
             inheritanceRequests = await inheritance.methods.getInheritanceRequests().call();
             const newLength = inheritanceRequests.length;
-    
+
             assert.deepStrictEqual(newLength, oldLength - 1);
             assert.deepStrictEqual(inheritanceRequests[index], undefined);
-        
+
             const event = tx.events.LogHeirRejected;
             const heirs = await inheritance.methods.getHeirs().call();
-        
+
             assert.strictEqual(event.event, "LogHeirRejected");
             assert.strictEqual(event.returnValues[0], "Administrator rejects user's request to be an heir.");
             assert.strictEqual(event.returnValues[1], requester);
@@ -457,7 +465,7 @@ describe("Inheritance contract", async () => {
             index = 0;
             share = 10;
 
-            await inheritance.methods.acceptInheritanceRequest(index, accounts[2], share).send({ from: accounts[0], gas: "10000000"});
+            await inheritance.methods.acceptInheritanceRequest(index, accounts[2], share).send({ from: accounts[0], gas: "10000000" });
 
             const value = web3.utils.toWei("1", "ether");
             await inheritance.methods.deposit().send({ from: accounts[0], value: value });
@@ -467,7 +475,7 @@ describe("Inheritance contract", async () => {
 
         it("should transfer the amount of Ether to the heir", async () => {
             const oldBalance = await web3.eth.getBalance(accounts[2]);
-            await inheritance.methods.claimInheritance().send({ from: accounts[2], gas: "10000000"});
+            await inheritance.methods.claimInheritance().send({ from: accounts[2], gas: "10000000" });
             const newBalance = await web3.eth.getBalance(accounts[2]);
 
             assert(Number(newBalance) > Number(oldBalance));
@@ -488,17 +496,17 @@ describe("Inheritance contract", async () => {
     });
 
     describe("addNFTDeed", async () => {
-        
+
         it("should add an NFT to a heir", async () => {
             await inheritance.methods.requestInheritance().send({ from: accounts[2] });
-            await inheritance.methods.acceptInheritanceRequest(0, accounts[2], 10).send({ from: accounts[0], gas: "10000000"});
+            await inheritance.methods.acceptInheritanceRequest(0, accounts[2], 10).send({ from: accounts[0], gas: "10000000" });
 
             await inheritance.methods.requestInheritance().send({ from: accounts[3] });
-            await inheritance.methods.acceptInheritanceRequest(0, accounts[3], 10).send({ from: accounts[0], gas: "10000000"});
+            await inheritance.methods.acceptInheritanceRequest(0, accounts[3], 10).send({ from: accounts[0], gas: "10000000" });
 
-            await inheritance.methods.addNFTDeed(accounts[2], 1).send({ from: accounts[0], gas: "10000000"});
-            await inheritance.methods.addNFTDeed(accounts[2], 2).send({ from: accounts[0], gas: "10000000"});
-            await inheritance.methods.addNFTDeed(accounts[3], 3).send({ from: accounts[0], gas: "10000000"});
+            await inheritance.methods.addNFTDeed(accounts[2], 1).send({ from: accounts[0], gas: "10000000" });
+            await inheritance.methods.addNFTDeed(accounts[2], 2).send({ from: accounts[0], gas: "10000000" });
+            await inheritance.methods.addNFTDeed(accounts[3], 3).send({ from: accounts[0], gas: "10000000" });
 
             const nftDeedIds = await inheritance.methods.getNFTDeedsByHeirAddress(accounts[2]).call();
             assert.strictEqual(Number(nftDeedIds[0]), 1);
@@ -510,37 +518,37 @@ describe("Inheritance contract", async () => {
 
         it("should not allow if the address sent doesn't match with any of the heirs", async () => {
             await assert.rejects(
-                inheritance.methods.addNFTDeed(accounts[4], 1).send({ from: accounts[0], gas: "10000000"}),
+                inheritance.methods.addNFTDeed(accounts[4], 1).send({ from: accounts[0], gas: "10000000" }),
                 /Not heir address matched to the one sent./
             );
         });
     });
-    
+
     //GET FUNCTIONS
     describe("getAliveTimeOut", async () => {
         it("should return the current aliveTimeOut value", async () => {
-          const expectedAliveTimeOut = 1000;
-          await inheritance.methods.updateAliveTimeOut(expectedAliveTimeOut).send({ from: accounts[0] });
-      
-          const aliveTimeOut = await inheritance.methods.getAliveTimeOut().call();
-      
-          assert.strictEqual(Number(aliveTimeOut), expectedAliveTimeOut);
+            const expectedAliveTimeOut = 1000;
+            await inheritance.methods.updateAliveTimeOut(expectedAliveTimeOut).send({ from: accounts[0] });
+
+            const aliveTimeOut = await inheritance.methods.getAliveTimeOut().call();
+
+            assert.strictEqual(Number(aliveTimeOut), expectedAliveTimeOut);
         });
-      
+
         it("should not allow if called by non-administrator accounts", async () => {
-          await assert.rejects(
-            inheritance.methods.getAliveTimeOut().send({ from: accounts[1] }),
-            /caller is not the owner/
-          );
+            await assert.rejects(
+                inheritance.methods.getAliveTimeOut().send({ from: accounts[1] }),
+                /caller is not the owner/
+            );
         });
     });
 
     describe("getEtherBalance", async () => {
         it("should return the current balance of the contract", async () => {
-          const balance = await inheritance.methods.getEtherBalance().call();
-          const expectedBalance = await web3.eth.getBalance(inheritanceAddress);
-      
-          assert.strictEqual(balance, expectedBalance);
+            const balance = await inheritance.methods.getEtherBalance().call();
+            const expectedBalance = await web3.eth.getBalance(inheritanceAddress);
+
+            assert.strictEqual(balance, expectedBalance);
         });
     });
 
@@ -548,7 +556,7 @@ describe("Inheritance contract", async () => {
         it("should return the current balance of the contract", async () => {
             const balance = await inheritance.methods.getUSDCBalance().call();
             const expectedBalance = await usdcTokenInstance.methods.balanceOf(inheritanceAddress).call();
-        
+
             assert.strictEqual(balance, expectedBalance);
         });
     });
@@ -559,14 +567,14 @@ describe("Inheritance contract", async () => {
 
             const inheritanceRequests = await inheritance.methods.getInheritanceRequests().call();
             const expectedInheritanceRequests = [accounts[2]];
-            
+
             assert.deepStrictEqual(inheritanceRequests, expectedInheritanceRequests);
         });
-        
+
         it("should not allow if called by non-administrator accounts", async () => {
             await assert.rejects(
-            inheritance.methods.getInheritanceRequests().call({ from: accounts[2] }),
-            /caller is not the owner/
+                inheritance.methods.getInheritanceRequests().call({ from: accounts[2] }),
+                /caller is not the owner/
             );
         });
     });
@@ -578,11 +586,11 @@ describe("Inheritance contract", async () => {
             const index = 0;
             const share = 10;
 
-            await inheritance.methods.acceptInheritanceRequest(index, accounts[2], share).send({ from: accounts[0], gas: "10000000"});
+            await inheritance.methods.acceptInheritanceRequest(index, accounts[2], share).send({ from: accounts[0], gas: "10000000" });
 
             const heirs = await inheritance.methods.getHeirs().call();
             const expectedHeirs = [accounts[2]];
-        
+
             assert.deepStrictEqual([heirs[0].heir], expectedHeirs);
             assert.strictEqual(Number(heirs[0].share), share);
         });
@@ -594,14 +602,14 @@ describe("Inheritance contract", async () => {
             await inheritance.methods.requestInheritance().send({ from: accounts[2] });
             const index = 0;
             const share = 10;
-            await inheritance.methods.acceptInheritanceRequest(index, accounts[2], share).send({ from: accounts[0], gas: "10000000"});
+            await inheritance.methods.acceptInheritanceRequest(index, accounts[2], share).send({ from: accounts[0], gas: "10000000" });
 
             await inheritance.methods.requestInheritance().send({ from: accounts[3] });
-            await inheritance.methods.acceptInheritanceRequest(index, accounts[3], share).send({ from: accounts[0], gas: "10000000"});
+            await inheritance.methods.acceptInheritanceRequest(index, accounts[3], share).send({ from: accounts[0], gas: "10000000" });
 
             const totalShares = await inheritance.methods.getTotalShares().call();
             const expectedTotalShares = 20;
-        
+
             assert.strictEqual(Number(totalShares), expectedTotalShares);
         });
     });
@@ -609,18 +617,18 @@ describe("Inheritance contract", async () => {
     describe("getNFTDeedsByHeirAddress", async () => {
         it("should return the current NFTDeedIds array", async () => {
             await inheritance.methods.requestInheritance().send({ from: accounts[2] });
-            await inheritance.methods.acceptInheritanceRequest(0, accounts[2], 10).send({ from: accounts[0], gas: "10000000"});
+            await inheritance.methods.acceptInheritanceRequest(0, accounts[2], 10).send({ from: accounts[0], gas: "10000000" });
 
             await inheritance.methods.requestInheritance().send({ from: accounts[3] });
-            await inheritance.methods.acceptInheritanceRequest(0, accounts[3], 10).send({ from: accounts[0], gas: "10000000"});
+            await inheritance.methods.acceptInheritanceRequest(0, accounts[3], 10).send({ from: accounts[0], gas: "10000000" });
 
-            await inheritance.methods.addNFTDeed(accounts[2], 1).send({ from: accounts[0], gas: "10000000"});
-            await inheritance.methods.addNFTDeed(accounts[2], 2).send({ from: accounts[0], gas: "10000000"});
-            await inheritance.methods.addNFTDeed(accounts[3], 3).send({ from: accounts[0], gas: "10000000"});
+            await inheritance.methods.addNFTDeed(accounts[2], 1).send({ from: accounts[0], gas: "10000000" });
+            await inheritance.methods.addNFTDeed(accounts[2], 2).send({ from: accounts[0], gas: "10000000" });
+            await inheritance.methods.addNFTDeed(accounts[3], 3).send({ from: accounts[0], gas: "10000000" });
 
             const nftDeedIds = await inheritance.methods.getNFTDeedsByHeirAddress(accounts[2]).call();
             const expectedNFTDeedIds = ["1", "2"];
-        
+
             assert.deepStrictEqual(nftDeedIds, expectedNFTDeedIds);
 
             const nftDeedIds2 = await inheritance.methods.getNFTDeedsByHeirAddress(accounts[3]).call();

@@ -24,6 +24,10 @@ contract InheritanceFactory {
     function getDeployedInheritancesCount() public view returns (uint) {
         return deployedInheritancesCount;
     }
+
+    function isAdmin() public view returns (bool) {
+        return inheritances[msg.sender] != address(0);
+    }
 }
 
 contract Inheritance is Ownable {

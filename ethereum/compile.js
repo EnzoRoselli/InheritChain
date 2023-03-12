@@ -18,6 +18,10 @@ const inheritanceDeedSource = fs.readFileSync(inheritanceDeedPath, 'utf8');
 const usdcDeedPath = path.resolve(__dirname, 'contracts', 'TestToken.sol');
 const usdcDeedSource = fs.readFileSync(usdcDeedPath, 'utf8');
 
+// Read the HeirsAdministration.sol file
+const heirsAdministrationPath = path.resolve(__dirname, 'contracts', 'HeirsAdministration.sol');
+const heirsAdministrationSource = fs.readFileSync(heirsAdministrationPath, 'utf8');
+ 
 const input = {
     language: "Solidity",
     sources: {
@@ -29,6 +33,9 @@ const input = {
       },
       'TestToken.sol': {
         content: usdcDeedSource
+      },
+      'HeirsAdministration.sol': {
+        content: heirsAdministrationSource
       }
     },
     settings: {
