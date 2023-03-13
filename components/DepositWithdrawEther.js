@@ -67,7 +67,7 @@ const DepositWithdrawEther = ({ inheritanceContract, accounts }) => {
         <Card fluid>
             <Card.Content>
                 <Card.Header align="center">Ether</Card.Header>
-                <Card.Meta>Balance: {etherBalance}</Card.Meta>
+                <Card.Meta>Balance: {etherBalance} ethers</Card.Meta>
                 <Card.Description>
                     <Form error={!!depositErrorMessage || !!withdrawErrorMessage}>
                         <Form.Field>

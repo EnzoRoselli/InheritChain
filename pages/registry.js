@@ -4,6 +4,7 @@ import { Grid, Segment, Button, Input, Popup, Icon, Form, Message } from "semant
 import web3 from "../ethereum/web3";
 import Link from "next/link";
 import InheritanceFactory from "../ethereum/factory";
+import { useRouter } from "next/router";
 
 const ERROR_MESSAGES = {
   INSUFFICIENT_FUNDS: "Insufficient funds in account.",
@@ -17,6 +18,7 @@ const RegistryPage = () => {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [aliveTimeOut, setAliveTimeOut] = useState(0);
+  const router = useRouter();
 
   const registerOwner = async (event) => {
     event.preventDefault();

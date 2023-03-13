@@ -175,6 +175,10 @@ contract Inheritance is Ownable {
         return aliveTimeOut;
     }
 
+    function getLastAlive() public view onlyOwner returns (uint256) {
+        return administrator.lastAlive;
+    }
+
     function getEtherBalance() public view returns (uint256) {
         return address(this).balance;
     }

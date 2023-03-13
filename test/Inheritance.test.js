@@ -543,6 +543,22 @@ describe("Inheritance contract", async () => {
         });
     });
 
+    describe("getLastAlive", async () => {
+        it("returns the last alive timestamp set in the constructor", async () => {
+            await inheritance.methods.signalAlive().send({ from: accounts[0] });
+            const block = await web3.eth.getBlock("latest");
+            const blockTimestamp = block.timestamp;
+            const lastAliveTimestamp = await inheritance.methods.getLastAlive().call();
+            assert.strictEqual(Number(lastAliveTimestamp), blockTimestamp);
+        });
+      
+        it("returns a non-zero timestamp after calling signalAlive", async () => {
+          await inheritance.methods.signalAlive().send({ from: accounts[0] });
+          const lastAliveTimestamp = await inheritance.methods.getLastAlive().call();
+          assert.notStrictEqual(Number(lastAliveTimestamp), 0);
+        });
+    });
+      
     describe("getEtherBalance", async () => {
         it("should return the current balance of the contract", async () => {
             const balance = await inheritance.methods.getEtherBalance().call();
