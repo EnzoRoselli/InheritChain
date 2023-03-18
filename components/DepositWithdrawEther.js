@@ -64,7 +64,7 @@ const DepositWithdrawEther = ({ inheritanceContract, accounts }) => {
     };
 
     return (
-        <Card fluid>
+        <Card color="green" fluid>
             <Card.Content>
                 <Card.Header align="center">Ether</Card.Header>
                 <Card.Meta>Balance: {etherBalance} ethers</Card.Meta>

@@ -16,8 +16,8 @@ const Header = () => {
 
     useEffect(() => {
         async function loadWeb3Data() {
-          const accounts = await web3.eth.getAccounts();
-          setAddress(accounts[0]);
+            const accounts = await web3.eth.getAccounts();
+            setAddress(accounts[0]);
         }
         loadWeb3Data();
 
@@ -32,13 +32,13 @@ const Header = () => {
             const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
             setAddress(accounts[0]);
 
-            const isAdmin = await InheritanceFactory.methods.isAdmin().call({from: accounts[0]});
-            const hasPendingRequests = await HeirAdministration.methods.hasPendingInheritances().call({from: accounts[0]});
-            const hasRejectedInheritances = await HeirAdministration.methods.hasRejectedInheritances().call({from: accounts[0]});
+            const isAdmin = await InheritanceFactory.methods.isAdmin().call({ from: accounts[0] });
+            const hasPendingRequests = await HeirAdministration.methods.hasPendingInheritances().call({ from: accounts[0] });
+            const hasRejectedInheritances = await HeirAdministration.methods.hasRejectedInheritances().call({ from: accounts[0] });
 
             if (!isAdmin && !hasPendingRequests && !hasRejectedInheritances) {
                 router.push("/registry");
-            } 
+            }
         } catch (error) {
             console.error(error);
         } finally {
@@ -48,13 +48,13 @@ const Header = () => {
 
     async function disconnectWallet() {
         try {
-          setLoading(true);
-          await window.ethereum.request({ method: "eth_accounts" });
-          setAddress("");
+            setLoading(true);
+            await window.ethereum.request({ method: "eth_accounts" });
+            setAddress("");
         } catch (error) {
-          console.error(error);
+            console.error(error);
         } finally {
-          setLoading(false);
+            setLoading(false);
         }
     }
 
@@ -71,24 +71,24 @@ const Header = () => {
                 <a className="item">InheritChain</a>
             </Link>
 
-            <Menu.Menu position="right" style={{ marginLeft: "10px"}}>
-            <Link href="/admin" legacyBehavior>
-                <a className="item">NFTs</a>
-            </Link>
+            <Menu.Menu position="right" style={{ marginLeft: "10px" }}>
+                <Link href="/owner/NFTs" legacyBehavior>
+                    <a className="item">NFTs</a>
+                </Link>
 
                 {address ? (
-                        <Dropdown  className="floating button positive" icon={null} trigger={formatAddress(address)} pointing="top right" style={{ marginRight: "-1px"}}>
-                            <Dropdown.Menu>
-                                <Dropdown.Item text="Disconnect" icon="log out" onClick={disconnectWallet} />
-                            </Dropdown.Menu>
-                        </Dropdown>
-                    ) : (
-                        <Button onClick={connectWallet} loading={loading} primary style={{ marginRight: "-1px"}}>
-                            Connect Wallet
-                        </Button>
+                    <Dropdown className="floating button positive" icon={null} trigger={formatAddress(address)} pointing="top right" style={{ marginRight: "-1px" }}>
+                        <Dropdown.Menu>
+                            <Dropdown.Item text="Disconnect" icon="log out" onClick={disconnectWallet} />
+                        </Dropdown.Menu>
+                    </Dropdown>
+                ) : (
+                    <Button onClick={connectWallet} loading={loading} primary style={{ marginRight: "-1px" }}>
+                        Connect Wallet
+                    </Button>
                 )}
             </Menu.Menu>
-        </Menu>        
+        </Menu>
     );
 };
 

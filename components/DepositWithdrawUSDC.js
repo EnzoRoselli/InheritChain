@@ -96,7 +96,7 @@ const DepositWithdrawUSDC = ({ inheritanceContract, accounts }) => {
     };
 
     return (
-        <Card fluid>
+        <Card color="green" fluid>
             <Card.Content>
                 <Card.Header align="center">USDC</Card.Header>
                 <Card.Meta>Balance: {formatUSDCBalance(usdcBalance)} USDC</Card.Meta>

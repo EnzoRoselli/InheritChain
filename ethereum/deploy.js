@@ -16,7 +16,10 @@ const fs = require("fs");
 const compiledFactory = require("./build/InheritanceFactory.json"); // This is the compiled contract that we want to deploy.
 const titleDeed = require("./build/TitleDeed.json");
 const heirsAdministration = require("./build/HeirsAdministration.json");
+
 const USDC_GOERLI_ADDRESS = process.env.USDC_TOKEN_ADDRESS;
+const PIGNATA_API_KEY = process.env.PIGNATA_API_KEY;
+const PIGNATA_API_SECRET = process.env.PIGNATA_API_SECRET;
 
 const mnemonic = process.env.MNEMONIC; // This is the mnemonic that we will use to connect to the network.
 const serverUrl = process.env.SERVER_URL; // This is the url of the network that we want to connect to.
@@ -48,10 +51,9 @@ const deploy = async () => {
     console.log("HeirsAdministration contract deployed to", resultHeirsAdministration.options.address);
     
     provider.engine.stop(); // To prevent a hanging deployment.
-
     fs.writeFile(
         "../.env.local",
-        `NEXT_PUBLIC_FACTORY_ADDRESS=${resultFactory.options.address}\nNEXT_PUBLIC_TITLE_DEED_ADDRESS=${resultTitleDeed.options.address}\nNEXT_PUBLIC_HEIRS_ADMINISTRATION_ADDRESS=${resultHeirsAdministration.options.address}\nNEXT_PUBLIC_USDC_GOERLI_ADDRESS=${USDC_GOERLI_ADDRESS}`,
+        `NEXT_PUBLIC_FACTORY_ADDRESS=${resultFactory.options.address}\nNEXT_PUBLIC_TITLE_DEED_ADDRESS=${resultTitleDeed.options.address}\nNEXT_PUBLIC_HEIRS_ADMINISTRATION_ADDRESS=${resultHeirsAdministration.options.address}\nNEXT_PUBLIC_USDC_GOERLI_ADDRESS=${PIGNATA_API_KEY}\nNEXT_PUBLIC_PIGNATA_API_KEY=${USDC_GOERLI_ADDRESS}\nNEXT_PUBLIC_PIGNATA_API_SECRET=${PIGNATA_API_SECRET}`,
         (err) => {
           if (err) throw err;
           console.log("Addresses written to .env.local");
