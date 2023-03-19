@@ -19,7 +19,6 @@ const RegistryPage = () => {
   const [heirLoading, setHeirLoading] = useState(false);
   const [heirErrorMessage, setHeirErrorMessage] = useState("");
   const [aliveTimeOut, setAliveTimeOut] = useState(0);
-  const [inheritanceAddress, setInheritanceAddress] = useState("");
   const router = useRouter();
 
   const registerOwner = async (event) => {
@@ -29,16 +28,9 @@ const RegistryPage = () => {
 
     try {
       const accounts = await web3.eth.getAccounts();
-      await InheritanceFactory.methods.createInheritance(aliveTimeOut, process.env.NEXT_PUBLIC_USDC_GOERLI_ADDRESS).send({ from: accounts[0] }).then(async () => {
-        await InheritanceFactory.methods.inheritances(accounts[0]).call().then(async (address) => {
-          setInheritanceAddress(address);
-        });
-      });
+      await InheritanceFactory.methods.createInheritance(aliveTimeOut, process.env.NEXT_PUBLIC_USDC_GOERLI_ADDRESS).send({ from: accounts[0] });
 
-      router.push({
-        pathname: "/owner",
-        query: { inheritanceAddress: inheritanceAddress },
-      });
+      router.push("/owner");
     } catch (error) {
       const errorMessage = error.message;
       switch (errorMessage) {
@@ -69,7 +61,6 @@ const RegistryPage = () => {
       setHeirLoading(false);
     }
   };
-
 
   return (
     <Layout>

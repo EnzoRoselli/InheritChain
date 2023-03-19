@@ -53,7 +53,7 @@ const deploy = async () => {
     provider.engine.stop(); // To prevent a hanging deployment.
     fs.writeFile(
         "../.env.local",
-        `NEXT_PUBLIC_FACTORY_ADDRESS=${resultFactory.options.address}\nNEXT_PUBLIC_TITLE_DEED_ADDRESS=${resultTitleDeed.options.address}\nNEXT_PUBLIC_HEIRS_ADMINISTRATION_ADDRESS=${resultHeirsAdministration.options.address}\nNEXT_PUBLIC_USDC_GOERLI_ADDRESS=${PIGNATA_API_KEY}\nNEXT_PUBLIC_PIGNATA_API_KEY=${USDC_GOERLI_ADDRESS}\nNEXT_PUBLIC_PIGNATA_API_SECRET=${PIGNATA_API_SECRET}`,
+        `NEXT_PUBLIC_FACTORY_ADDRESS=${resultFactory.options.address}\nNEXT_PUBLIC_TITLE_DEED_ADDRESS=${resultTitleDeed.options.address}\nNEXT_PUBLIC_HEIRS_ADMINISTRATION_ADDRESS=${resultHeirsAdministration.options.address}\nNEXT_PUBLIC_USDC_GOERLI_ADDRESS=${USDC_GOERLI_ADDRESS}\nNEXT_PUBLIC_PIGNATA_API_KEY=${PIGNATA_API_KEY}\nNEXT_PUBLIC_PIGNATA_API_SECRET=${PIGNATA_API_SECRET}`,
         (err) => {
           if (err) throw err;
           console.log("Addresses written to .env.local");

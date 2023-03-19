@@ -22,6 +22,7 @@ const Header = () => {
         loadWeb3Data();
 
         window.ethereum.on("accountsChanged", function (accounts) { // This event is emitted when the user changes the account in MetaMask.
+            console.log("accountsChanged", accounts);
             setAddress(accounts[0] || "");
         });
     }, []);
