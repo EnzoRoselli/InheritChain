@@ -168,8 +168,8 @@ describe("InheritanceDeed", () => {
 
             await inheritanceContract.methods.updateAliveTimeOut(0).send({ from: accounts[0], gas: "100000000" });
 
-            await inheritanceContract.methods.requestInheritance().send({ from: accounts[1], gas: "100000000" });
-            await inheritanceContract.methods.requestInheritance().send({ from: accounts[2], gas: "100000000" });
+            await inheritanceContract.methods.requestInheritance(accounts[1]).send({ from: accounts[1], gas: "100000000" });
+            await inheritanceContract.methods.requestInheritance(accounts[2]).send({ from: accounts[2], gas: "100000000" });
 
             await inheritanceContract.methods.acceptInheritanceRequest(index, accounts[1], 10).send({ from: accounts[0], gas: "100000000" });
             await inheritanceContract.methods.acceptInheritanceRequest(index, accounts[2], 10).send({ from: accounts[0], gas: "100000000" });

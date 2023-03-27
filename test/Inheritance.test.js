@@ -278,7 +278,7 @@ describe("Inheritance contract", async () => {
             inheritanceRequests = await inheritance.methods.getInheritanceRequests().call();
             const oldLength = inheritanceRequests.length;
 
-            await inheritance.methods.requestInheritance().send({ from: accounts[2] });
+            await inheritance.methods.requestInheritance(accounts[2]).send({ from: accounts[2] });
 
             inheritanceRequests = await inheritance.methods.getInheritanceRequests().call();
             const newLength = inheritanceRequests.length;
@@ -288,7 +288,7 @@ describe("Inheritance contract", async () => {
         });
 
         it("should emit LogRequestToBeHeir event", async () => {
-            const tx = await inheritance.methods.requestInheritance().send({ from: accounts[2] });
+            const tx = await inheritance.methods.requestInheritance(accounts[2]).send({ from: accounts[2] });
             const event = tx.events.LogRequestToBeHeir;
             inheritanceRequests = await inheritance.methods.getInheritanceRequests().call();
             const heirs = await inheritance.methods.getHeirs().call();
@@ -301,9 +301,9 @@ describe("Inheritance contract", async () => {
         });
 
         it("should revert if the sender has already requested inheritance", async () => {
-            await inheritance.methods.requestInheritance().send({ from: accounts[2] });
+            await inheritance.methods.requestInheritance(accounts[2]).send({ from: accounts[2] });
             await assert.rejects(
-                inheritance.methods.requestInheritance().send({ from: accounts[2] }),
+                inheritance.methods.requestInheritance(accounts[2]).send({ from: accounts[2] }),
                 /Address already exists in requests array./
             );
         });
@@ -316,7 +316,7 @@ describe("Inheritance contract", async () => {
         const share = 30;
 
         beforeEach(async () => {
-            await inheritance.methods.requestInheritance().send({ from: accounts[2] });
+            await inheritance.methods.requestInheritance(accounts[2]).send({ from: accounts[2] });
         });
 
         it("should add the requester to the heirs array", async () => {
@@ -375,7 +375,7 @@ describe("Inheritance contract", async () => {
         it("should revert if the address already exists in heirs array", async () => {
             await inheritance.methods.acceptInheritanceRequest(index, accounts[2], share).send({ from: accounts[0], gas: "10000000" });
 
-            await inheritance.methods.requestInheritance().send({ from: accounts[2], gas: "10000000" });
+            await inheritance.methods.requestInheritance(accounts[2]).send({ from: accounts[2], gas: "10000000" });
             await assert.rejects(
                 inheritance.methods.acceptInheritanceRequest(index, accounts[2], share).send({ from: accounts[0], gas: "10000000" }),
                 /Address already exists in heirs array./
@@ -400,7 +400,7 @@ describe("Inheritance contract", async () => {
 
         beforeEach(async () => {
             // Add a request before each test
-            await inheritance.methods.requestInheritance().send({ from: accounts[2] });
+            await inheritance.methods.requestInheritance(accounts[2]).send({ from: accounts[2] });
 
             inheritanceRequests = await inheritance.methods.getInheritanceRequests().call();
         });
@@ -459,7 +459,7 @@ describe("Inheritance contract", async () => {
             await inheritance.methods.updateAliveTimeOut(0).send({ from: accounts[0] });
 
             // Add a request before each test
-            await inheritance.methods.requestInheritance().send({ from: accounts[2] });
+            await inheritance.methods.requestInheritance(accounts[2]).send({ from: accounts[2] });
 
             inheritanceRequests = await inheritance.methods.getInheritanceRequests().call();
             index = 0;
@@ -498,10 +498,10 @@ describe("Inheritance contract", async () => {
     describe("addNFTDeed", async () => {
 
         it("should add an NFT to a heir", async () => {
-            await inheritance.methods.requestInheritance().send({ from: accounts[2] });
+            await inheritance.methods.requestInheritance(accounts[2]).send({ from: accounts[2] });
             await inheritance.methods.acceptInheritanceRequest(0, accounts[2], 10).send({ from: accounts[0], gas: "10000000" });
 
-            await inheritance.methods.requestInheritance().send({ from: accounts[3] });
+            await inheritance.methods.requestInheritance(accounts[3]).send({ from: accounts[3] });
             await inheritance.methods.acceptInheritanceRequest(0, accounts[3], 10).send({ from: accounts[0], gas: "10000000" });
 
             await inheritance.methods.addNFTDeed(accounts[2], 1).send({ from: accounts[0], gas: "10000000" });
@@ -579,25 +579,18 @@ describe("Inheritance contract", async () => {
 
     describe("getInheritanceRequests", async () => {
         it("should return the current inheritanceRequests array", async () => {
-            await inheritance.methods.requestInheritance().send({ from: accounts[2] });
+            await inheritance.methods.requestInheritance(accounts[2]).send({ from: accounts[2] });
 
             const inheritanceRequests = await inheritance.methods.getInheritanceRequests().call();
             const expectedInheritanceRequests = [accounts[2]];
 
             assert.deepStrictEqual(inheritanceRequests, expectedInheritanceRequests);
         });
-
-        it("should not allow if called by non-administrator accounts", async () => {
-            await assert.rejects(
-                inheritance.methods.getInheritanceRequests().call({ from: accounts[2] }),
-                /caller is not the owner/
-            );
-        });
     });
 
     describe("getHeirs", async () => {
         it("should return the current heirs array", async () => {
-            await inheritance.methods.requestInheritance().send({ from: accounts[2] });
+            await inheritance.methods.requestInheritance(accounts[2]).send({ from: accounts[2] });
 
             const index = 0;
             const share = 10;
@@ -615,12 +608,12 @@ describe("Inheritance contract", async () => {
     describe("getTotalShares", async () => {
         it("should return the current totalShares value", async () => {
 
-            await inheritance.methods.requestInheritance().send({ from: accounts[2] });
+            await inheritance.methods.requestInheritance(accounts[2]).send({ from: accounts[2] });
             const index = 0;
             const share = 10;
             await inheritance.methods.acceptInheritanceRequest(index, accounts[2], share).send({ from: accounts[0], gas: "10000000" });
 
-            await inheritance.methods.requestInheritance().send({ from: accounts[3] });
+            await inheritance.methods.requestInheritance(accounts[3]).send({ from: accounts[3] });
             await inheritance.methods.acceptInheritanceRequest(index, accounts[3], share).send({ from: accounts[0], gas: "10000000" });
 
             const totalShares = await inheritance.methods.getTotalShares().call();
@@ -632,10 +625,10 @@ describe("Inheritance contract", async () => {
 
     describe("getNFTDeedsByHeirAddress", async () => {
         it("should return the current NFTDeedIds array", async () => {
-            await inheritance.methods.requestInheritance().send({ from: accounts[2] });
+            await inheritance.methods.requestInheritance(accounts[2]).send({ from: accounts[2] });
             await inheritance.methods.acceptInheritanceRequest(0, accounts[2], 10).send({ from: accounts[0], gas: "10000000" });
 
-            await inheritance.methods.requestInheritance().send({ from: accounts[3] });
+            await inheritance.methods.requestInheritance(accounts[3]).send({ from: accounts[3] });
             await inheritance.methods.acceptInheritanceRequest(0, accounts[3], 10).send({ from: accounts[0], gas: "10000000" });
 
             await inheritance.methods.addNFTDeed(accounts[2], 1).send({ from: accounts[0], gas: "10000000" });

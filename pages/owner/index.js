@@ -17,12 +17,13 @@ const OwnerPage = () => {
     useEffect(() => {
         const getInheritanceContract = async () => {
             try {
-                const accounts = await web3.eth.getAccounts();
-                setAccounts(accounts);
-                await InheritanceFactory.methods.inheritances(accounts[0]).call().then(async (address) => {
-                    setInheritanceAddress(address);
-                    const inheritanceContract = await new web3.eth.Contract(Inheritance.abi, address);
-                    setInheritanceContract(inheritanceContract);
+                await web3.eth.getAccounts().then(async (accounts) => {
+                    setAccounts(accounts);
+                    await InheritanceFactory.methods.inheritances(accounts[0]).call().then(async (address) => {
+                        setInheritanceAddress(address);
+                        const inheritanceContract = await new web3.eth.Contract(Inheritance.abi, address);
+                        setInheritanceContract(inheritanceContract);
+                    });
                 });
             } catch (error) {
                 console.log(error);

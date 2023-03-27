@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import Layout from "../../components/Layout";
-import OwnerAddress from "../../components/ownerAddress";
 import { uploadFileToIPFS, uploadJSONToIPFS } from "../../components/js/pinata";
 import { Button, Input, Icon, Form, Message, Card, Container, Loader, Image, Segment } from "semantic-ui-react";
 import TitleDeed from "../../ethereum/titleDeed";
@@ -16,8 +15,6 @@ const NFTs = () => {
     const [uploadingNFT, setUploadingNFT] = useState(false);
     const [userNFTs, setUserNFTs] = useState([]);
     const [fileInputKey, setFileInputKey] = useState(0);
-    const [pdfFiles, setPdfFiles] = useState({});
-    const [pdfToLoad, setPdfToLoad] = useState(null);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -29,9 +26,7 @@ const NFTs = () => {
     const getUserNFTs = async () => {
         try {
             const accounts = await web3.eth.getAccounts();
-            console.log("accounts", accounts);
             const tokens = await TitleDeed.methods.getAdministratorNFTs().call({ from: accounts[0] });
-            console.log("tokens", tokens);
 
             const nfts = await Promise.all(
                 tokens.map(async (token) => {
@@ -196,34 +191,36 @@ const NFTs = () => {
 
             </Layout>
             <div style={{ maxWidth: '110rem', margin: '0 auto', paddingTop: '2rem', paddingBottom: '2rem' }}>
-                <Segment style={{ marginTop: '2rem' }} raised>
-                    <Card.Group itemsPerRow={3}>
-                        {userNFTs.map((nft) => (
-                            <Card key={nft.tokenId}>
-                                <Image
-                                    src={nft.image}
-                                    wrapped
-                                    ui={false}
-                                    style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        maxHeight: '300px',
-                                        overflow: 'hidden',
-                                    }}
-                                />
-                                <Card.Content>
-                                    <Card.Header>{nft.name}</Card.Header>
-                                    <Card.Meta>Token ID: {nft.tokenId}</Card.Meta>
-                                    <Card.Description
-                                        style={{ height: 'auto', overflow: 'hidden', maxHeight: '100rem' }}
-                                    >
-                                        {nft.description}
-                                    </Card.Description>
-                                </Card.Content>
-                            </Card>
-                        ))}
-                    </Card.Group>
-                </Segment>
+                {userNFTs.length > 0 && (
+                    <Segment style={{ marginTop: '2rem' }} raised>
+                        <Card.Group itemsPerRow={3}>
+                            {userNFTs.map((nft) => (
+                                <Card key={nft.tokenId}>
+                                    <Image
+                                        src={nft.image}
+                                        wrapped
+                                        ui={false}
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            maxHeight: '300px',
+                                            overflow: 'hidden',
+                                        }}
+                                    />
+                                    <Card.Content>
+                                        <Card.Header>{nft.name}</Card.Header>
+                                        <Card.Meta>Token ID: {nft.tokenId}</Card.Meta>
+                                        <Card.Description
+                                            style={{ height: 'auto', overflow: 'hidden', maxHeight: '100rem' }}
+                                        >
+                                            {nft.description}
+                                        </Card.Description>
+                                    </Card.Content>
+                                </Card>
+                            ))}
+                        </Card.Group>
+                    </Segment>
+                )}
             </div>
         </>
     );

@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { Grid, Button, Input, Container, Card, Form, Message } from "semantic-ui-react";
+import { Grid, Button, Input, Container, Card, Form, Message, Icon } from "semantic-ui-react";
 import Layout from "../../components/Layout";
 import HeirAdministration from "../../ethereum/heirAdministration";
 import web3 from "../../ethereum/web3";
-import Inheritance from "../../ethereum/build/Inheritance.json";
 
 const ERROR_MESSAGES = {
     INSUFFICIENT_FUNDS: "Insufficient funds in account.",
@@ -20,16 +19,17 @@ const HeirPage = () => {
     const [inheritanceAddress, setInheritanceAddress] = useState('');
     const [requestErrorMessage, setRequestErrorMessage] = useState('');
     const [uploadingRequest, setUploadingRequest] = useState(false);
+    const [updatingInheritances, setUpdatingInheritances] = useState(false);
+
 
     useEffect(() => {
         const getHeirInformation = async () => {
             try {
-                const accounts = await web3.eth.getAccounts().then(async (accounts) => {
+                await web3.eth.getAccounts().then(async (accounts) => {
                     setAccounts(accounts);
                     await fetchPendingInheritances(accounts);
                     await fetchRejectedInheritances(accounts);
                 });
-                
             } catch (error) {
                 console.log(error);
             }
@@ -55,9 +55,6 @@ const HeirPage = () => {
             setRequestErrorMessage('');
             await HeirAdministration.methods.addPendingInheritance(inheritanceAddress).send({ from: accounts[0] });
 
-            const inheritanceContract = await new web3.eth.Contract(Inheritance.abi, inheritanceAddress);
-            await inheritanceContract.methods.requestInheritance().send({ from: accounts[0] });
-
             setInheritanceAddress('');
             await fetchPendingInheritances(accounts);
         } catch (error) {
@@ -74,6 +71,19 @@ const HeirPage = () => {
             }
         } finally {
             setUploadingRequest(false);
+        }
+    };
+
+    const updateInheritances = async () => {
+        try {
+            setUpdatingInheritances(true);
+            await HeirAdministration.methods.updatePendingInheritances().send({ from: accounts[0] });
+            await fetchPendingInheritances(accounts);
+            await fetchRejectedInheritances(accounts);
+        } catch (error) {
+            console.error("Error updating inheritances:", error);
+        } finally {
+            setUpdatingInheritances(false);
         }
     };
 
@@ -148,6 +158,16 @@ const HeirPage = () => {
                     </Card>
                 </Grid.Column>
             </Grid>
+            <div style={{ position: "fixed", bottom: "2rem", right: "2rem" }}>
+                <Button
+                    color="yellow"
+                    onClick={updateInheritances}
+                    loading={updatingInheritances}
+                >
+                    <Icon name="refresh" />
+                    Actualizar
+                </Button>
+            </div>
 
         </Layout>
     );

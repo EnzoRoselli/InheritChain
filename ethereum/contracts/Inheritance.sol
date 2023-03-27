@@ -110,9 +110,9 @@ contract Inheritance is Ownable {
         emit LogAdministratorAlive("Administrator sends a signal to show he is alive.", msg.sender, administrator.lastAlive, block.timestamp, aliveTimeOut);
     }
 
-    function requestInheritance() public requestInheritanceValidations(msg.sender) {
-        inheritanceRequests.push(msg.sender);
-        emit LogRequestToBeHeir("User requests to be added as an heir.", msg.sender, inheritanceRequests.length, heirs.length);
+    function requestInheritance(address requester) public requestInheritanceValidations(requester) {
+        inheritanceRequests.push(requester);
+        emit LogRequestToBeHeir("User requests to be added as an heir.", requester, inheritanceRequests.length, heirs.length);
     }
 
     function acceptInheritanceRequest(uint index, address requester, uint256 share) public onlyOwner acceptInheritanceValidations(index, requester, share) {
@@ -187,7 +187,7 @@ contract Inheritance is Ownable {
         return token.balanceOf(address(this));
     }
 
-    function getInheritanceRequests() public view onlyOwner returns (address[] memory) {
+    function getInheritanceRequests() public view returns (address[] memory) {
         return inheritanceRequests;
     }
 
