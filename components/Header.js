@@ -30,10 +30,6 @@ const Header = () => {
 
     async function updateRoleAndAddress(account) {
         setAddress(account);
-        if (!account) {
-            setRole("");
-            return;
-        }
 
         const adminStatus = await InheritanceFactory.methods.isAdmin().call({ from: account });
         const hasPendingRequests = await HeirAdministration.methods.hasPendingInheritances().call({ from: account });

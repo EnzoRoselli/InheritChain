@@ -1,11 +1,25 @@
 import React, { useState, useEffect } from "react";
 import Layout from "../../components/Layout";
 import { uploadFileToIPFS, uploadJSONToIPFS } from "../../components/js/pinata";
-import { Button, Input, Icon, Form, Message, Card, Container, Loader, Image, Segment } from "semantic-ui-react";
+import { Button, Input, Icon, Form, Message, Card, Container, Loader, Image, Segment, Divider, Dropdown } from "semantic-ui-react";
 import TitleDeed from "../../ethereum/titleDeed";
+import InheritanceFactory from "../../ethereum/factory";
+import Inheritance from "../../ethereum/build/Inheritance.json";
 import web3 from "../../ethereum/web3";
 
+const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
+
+const ERROR_MESSAGES = {
+    INSUFFICIENT_FUNDS: "Insufficient funds in account.",
+    USER_DENIED: "Transaction cancelled by user.",
+    NETWORK_NOT_SYNCED: "Ethereum client not synced with network.",
+    NOT_A_NUMBER: "No letters or words, must be a number.",
+    TRANSACTION_FAILED: "Transaction failed.",
+};
+
 const NFTs = () => {
+    const [inheritanceContract, setInheritanceContract] = useState(null);
+    const [accounts, setAccounts] = useState([]);
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
     const [fileURL, setFileURL] = useState(null);
@@ -15,15 +29,32 @@ const NFTs = () => {
     const [uploadingNFT, setUploadingNFT] = useState(false);
     const [userNFTs, setUserNFTs] = useState([]);
     const [fileInputKey, setFileInputKey] = useState(0);
+    const [selectedHeirs, setSelectedHeirs] = useState({});
+    const [heirAddresses, setHeirAddresses] = useState([]);
+    const [nftErrors, setNftErrors] = useState({});
+    const [nftLoadingStates, setNftLoadingStates] = useState({});
 
     useEffect(() => {
         const fetchData = async () => {
-            await getUserNFTs();
+            try {
+                await web3.eth.getAccounts().then(async (accounts) => {
+                    setAccounts(accounts);
+                    await InheritanceFactory.methods.inheritances(accounts[0]).call().then(async (address) => {
+                        const inheritanceContract = await new web3.eth.Contract(Inheritance.abi, address);
+                        setInheritanceContract(inheritanceContract);
+                        const fetchedHeirs = await inheritanceContract.methods.getHeirsAddresses().call();
+                        setHeirAddresses(fetchedHeirs);
+                        await getUserNFTs(inheritanceContract);
+                    });
+                });
+            } catch (error) {
+                console.log(error);
+            }
         };
         fetchData();
     }, []);
 
-    const getUserNFTs = async () => {
+    const getUserNFTs = async (inheritanceContract) => {
         try {
             const accounts = await web3.eth.getAccounts();
             const tokens = await TitleDeed.methods.getAdministratorNFTs().call({ from: accounts[0] });
@@ -39,6 +70,7 @@ const NFTs = () => {
                         name: metadata.name,
                         description: metadata.description,
                         image: metadata.image,
+                        heir: await inheritanceContract.methods.nftHeirs(tokenId).call() || null,
                     }
 
                     return item;
@@ -109,7 +141,6 @@ const NFTs = () => {
 
             if (metadataURL) {
                 //upload the NFT to the ethereum blockchain
-                const accounts = await web3.eth.getAccounts();
                 const result = await TitleDeed.methods.safeMint(metadataURL).send({ from: accounts[0] });
                 console.log("NFT uploaded to ethereum blockchain: ", result);
 
@@ -118,7 +149,7 @@ const NFTs = () => {
                 setDescription('');
                 setFileURL(null);
                 setFileInputKey(fileInputKey + 1);
-                await getUserNFTs();
+                await getUserNFTs(inheritanceContract);
             } else {
                 console.log("Error uploading JSON to Pinata: ", response)
                 setUploadNFTErrorMessage("Error uploading metadata to Pinata. Please try again.");
@@ -132,12 +163,51 @@ const NFTs = () => {
         }
     }
 
+    const handleHeirSelection = (tokenId, event, data) => {
+        setSelectedHeirs({ ...selectedHeirs, [tokenId]: data.value });
+    };
+
+    const changeHeir = async (tokenId) => {
+        setNftErrors({ ...nftErrors, [tokenId]: '' });
+        setNftLoadingStates({ ...nftLoadingStates, [tokenId]: true });
+        try {
+            const newHeirAddress = selectedHeirs[tokenId];
+            console.log("Updating heir for tokenId", tokenId, "to", newHeirAddress);
+
+            if (newHeirAddress === ZERO_ADDRESS) {
+                await inheritanceContract.methods.removeNFTDeed(tokenId).send({ from: accounts[0] });
+                console.log("Heir removed for tokenId", tokenId);
+            } else {
+                await inheritanceContract.methods.addNFTDeed(tokenId, newHeirAddress).send({ from: accounts[0] });
+                console.log("Heir updated for tokenId", tokenId);
+            }
+
+            console.log("Heir updated for tokenId", tokenId);
+            const fetchedHeirs = await inheritanceContract.methods.getHeirsAddresses().call();
+            setHeirAddresses(fetchedHeirs);
+            await getUserNFTs(inheritanceContract);
+        } catch (error) {
+            const errorMessage = error.message;
+            switch (errorMessage) {
+                case ERROR_MESSAGES.USER_DENIED:
+                case ERROR_MESSAGES.NETWORK_NOT_SYNCED:
+                case ERROR_MESSAGES.INSUFFICIENT_FUNDS:
+                case ERROR_MESSAGES.NOT_A_NUMBER:
+                    setNftErrors({ ...nftErrors, [tokenId]: ERROR_MESSAGES[errorMessage] });
+                    break;
+                default:
+                    setNftErrors({ ...nftErrors, [tokenId]: `${ERROR_MESSAGES.TRANSACTION_FAILED} ${errorMessage}` });
+            }
+        } finally {
+            setNftLoadingStates({ ...nftLoadingStates, [tokenId]: false });
+        }
+    };
+
     return (
         <>
             <Layout>
                 <Container style={{ maxWidth: '100px', paddingTop: '2rem' }}>
                     <div style={{ maxWidth: '600px', margin: '0 auto' }}>
-
                         <Card fluid>
                             <Card.Content>
                                 <Card.Header textAlign="center">Cargar documento</Card.Header>
@@ -215,6 +285,44 @@ const NFTs = () => {
                                         >
                                             {nft.description}
                                         </Card.Description>
+                                        <Divider />
+                                        <Form>
+                                            <Form.Field>
+                                                <label>Current Heir:</label>
+                                                <span>{nft.heir === ZERO_ADDRESS ? "Not assigned" : nft.heir}</span>
+                                            </Form.Field>
+                                            <Form.Field>
+                                                <label>Select New Heir:</label>
+                                                <Dropdown
+                                                    placeholder="Select heir"
+                                                    fluid
+                                                    selection
+                                                    value={selectedHeirs[nft.tokenId] || nft.heir || ""}
+                                                    onChange={(event, data) => handleHeirSelection(nft.tokenId, event, data)}
+                                                    options={[
+                                                        { key: "none", value: ZERO_ADDRESS, text: "None" },
+                                                        ...heirAddresses.map((heir) => ({
+                                                            key: heir,
+                                                            value: heir,
+                                                            text: heir,
+                                                        })),
+                                                    ]}
+                                                />
+                                            </Form.Field>
+                                            <Button
+                                                type="button"
+                                                onClick={() => changeHeir(nft.tokenId)}
+                                                disabled={!selectedHeirs[nft.tokenId] || selectedHeirs[nft.tokenId] === nft.heir || nftLoadingStates[nft.tokenId]}
+                                                loading={nftLoadingStates[nft.tokenId]}
+                                                primary
+                                            >
+                                                {nftLoadingStates[nft.tokenId] ? "Changing heir..." : "Change heir"}
+                                            </Button>
+
+                                        </Form>
+                                        {nftErrors[nft.tokenId] && (
+                                            <Message error header="Oops!" content={nftErrors[nft.tokenId]} />
+                                        )}
                                     </Card.Content>
                                 </Card>
                             ))}
