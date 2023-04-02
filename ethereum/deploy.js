@@ -31,6 +31,7 @@ const provider = new HDWalletProvider(
 const web3 = new Web3(provider); // This is the instance of web3 that we will use to interact with the network.
 
 const deploy = async () => {
+    try {
     const accounts = await web3.eth.getAccounts();
 
     console.log("Attempting to deploy from account", accounts[0]);
@@ -50,7 +51,6 @@ const deploy = async () => {
         .send({ gas: "10000000", from: accounts[0] });
     console.log("HeirsAdministration contract deployed to", resultHeirsAdministration.options.address);
     
-    provider.engine.stop(); // To prevent a hanging deployment.
     fs.writeFile(
         "../.env.local",
         `NEXT_PUBLIC_FACTORY_ADDRESS=${resultFactory.options.address}\nNEXT_PUBLIC_TITLE_DEED_ADDRESS=${resultTitleDeed.options.address}\nNEXT_PUBLIC_HEIRS_ADMINISTRATION_ADDRESS=${resultHeirsAdministration.options.address}\nNEXT_PUBLIC_USDC_GOERLI_ADDRESS=${USDC_GOERLI_ADDRESS}\nNEXT_PUBLIC_PIGNATA_API_KEY=${PIGNATA_API_KEY}\nNEXT_PUBLIC_PIGNATA_API_SECRET=${PIGNATA_API_SECRET}`,
@@ -59,6 +59,11 @@ const deploy = async () => {
           console.log("Addresses written to .env.local");
         }
     );
+    } catch (error) {
+        console.error("Error during deployment:", error);
+    } finally {
+      provider.engine.stop();
+    }
 };
 
 deploy();

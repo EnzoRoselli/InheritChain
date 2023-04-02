@@ -34,9 +34,10 @@ const Header = () => {
         const adminStatus = await InheritanceFactory.methods.isAdmin().call({ from: account });
         const hasPendingRequests = await HeirAdministration.methods.hasPendingInheritances().call({ from: account });
         const hasRejectedInheritances = await HeirAdministration.methods.hasRejectedInheritances().call({ from: account });
+        const hasApprovedInheritances = await HeirAdministration.methods.getApprovedInheritances().call({ from: account });
 
         setIsAdmin(adminStatus);
-        setIsHeir(hasPendingRequests || hasRejectedInheritances);
+        setIsHeir(hasPendingRequests || hasRejectedInheritances || hasApprovedInheritances.length > 0);
     }
 
     async function connectWallet() {
@@ -93,48 +94,74 @@ const Header = () => {
             </Menu.Item>
 
             <Menu.Menu position="right">
+                {/* {isHeir && isAdmin && (
+                    <div
+                        style={{
+                            borderLeft: "1px solid rgba(34,36,38,.15)",
+                            height: "100%",
+                            margin: "0 0.3rem",
+                        }}
+                    />
+                )} */}
+
                 {isHeir && (
-                    <Menu.Item>
-                        <Link href="/heir" legacyBehavior>
-                            <a>
-                                <Icon name="legal" />
-                                Solicitar Herencia
-                            </a>
-                        </Link>
-                    </Menu.Item>
+                    <>
+                        <Menu.Item>
+                            <Link href="/heir/request-inheritance" legacyBehavior>
+                                <a>
+                                    <Icon name="legal" />
+                                    Solicitar Herencia
+                                </a>
+                            </Link>
+                        </Menu.Item>
+                        <Menu.Item>
+                            <Link href="/heir" legacyBehavior>
+                                <a>
+                                    <Icon name="file alternate" />
+                                    Herencias
+                                </a>
+                            </Link>
+                        </Menu.Item>
+                    </>
                 )}
 
-                {isAdmin && (
-                    <Menu.Item>
-                        <Link href="/owner/NFTs" legacyBehavior>
-                            <a>
-                                <Icon name="file image" />
-                                NFTs
-                            </a>
-                        </Link>
-                    </Menu.Item>
-                )}
+                {/* {isHeir && isAdmin && (
+                    <div
+                        style={{
+                            borderLeft: "1px solid rgba(34,36,38,.15)",
+                            height: "100%",
+                            margin: "0 0.3rem",
+                        }}
+                    />
+                )} */}
 
                 {isAdmin && (
-                    <Menu.Item>
-                        <Link href="/owner/heir-management" legacyBehavior>
-                            <a>
-                                <Icon name="users" />
-                                Herederos
-                            </a>
-                        </Link>
-                    </Menu.Item>
-                )}
-
-                {isAdmin && (
-                    <Menu.Item>
-                        <Link href="/owner" legacyBehavior>
-                            <a>
-                                <Icon name="settings" />
-                                Panel
-                            </a>
-                        </Link>
-                    </Menu.Item>
+                    <>
+                        <Menu.Item>
+                            <Link href="/owner/NFTs" legacyBehavior>
+                                <a>
+                                    <Icon name="cube" />
+                                    NFTs
+                                </a>
+                            </Link>
+                        </Menu.Item>
+                        <Menu.Item>
+                            <Link href="/owner/heir-management" legacyBehavior>
+                                <a>
+                                    <Icon name="users" />
+                                    Herederos
+                                </a>
+                            </Link>
+                        </Menu.Item>
+                        <Menu.Item>
+                            <Link href="/owner" legacyBehavior>
+                                <a>
+                                    <Icon name="settings" />
+                                    Panel
+                                </a>
+                            </Link>
+                        </Menu.Item>
+                    </>
                 )}
 
                 {address ? (

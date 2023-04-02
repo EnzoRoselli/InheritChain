@@ -477,13 +477,16 @@ describe("Inheritance contract", async () => {
             const oldBalance = await web3.eth.getBalance(accounts[2]);
             await inheritance.methods.claimInheritance().send({ from: accounts[2], gas: "10000000" });
             const newBalance = await web3.eth.getBalance(accounts[2]);
+            const isInheritanceClaimed = await inheritance.methods.getIsInheritanceClaimed().call({ from: accounts[2], gas: "10000000" });
 
             assert(Number(newBalance) > Number(oldBalance));
+            assert.strictEqual(isInheritanceClaimed, true);
         });
 
         it("should emit LogHeirClaiming event", async () => {
             const tx = await inheritance.methods.claimInheritance().send({ from: accounts[2], gas: "10000000" });
             heirs = await inheritance.methods.getHeirs().call();
+            const isInheritanceClaimed = await inheritance.methods.getIsInheritanceClaimed().call({ from: accounts[2], gas: "10000000" });
 
             const event = tx.events.LogHeirClaiming;
             assert.strictEqual(event.event, "LogHeirClaiming");
@@ -492,6 +495,7 @@ describe("Inheritance contract", async () => {
             assert.strictEqual(Number(event.returnValues[2]), share);
             assert.strictEqual(event.returnValues[4], heirs[0].etherBalance);
             assert.strictEqual(event.returnValues[6], heirs[0].usdcBalance);
+            assert.strictEqual(isInheritanceClaimed, true);
         });
     });
 
@@ -504,9 +508,9 @@ describe("Inheritance contract", async () => {
             await inheritance.methods.requestInheritance(accounts[3]).send({ from: accounts[3] });
             await inheritance.methods.acceptInheritanceRequest(0, accounts[3], 10).send({ from: accounts[0], gas: "10000000" });
 
-            await inheritance.methods.addNFTDeed(accounts[2], 1).send({ from: accounts[0], gas: "10000000" });
-            await inheritance.methods.addNFTDeed(accounts[2], 2).send({ from: accounts[0], gas: "10000000" });
-            await inheritance.methods.addNFTDeed(accounts[3], 3).send({ from: accounts[0], gas: "10000000" });
+            await inheritance.methods.addNFTDeed(1, accounts[2]).send({ from: accounts[0], gas: "10000000" });
+            await inheritance.methods.addNFTDeed(2, accounts[2]).send({ from: accounts[0], gas: "10000000" });
+            await inheritance.methods.addNFTDeed(3, accounts[3]).send({ from: accounts[0], gas: "10000000" });
 
             const nftDeedIds = await inheritance.methods.getNFTDeedsByHeirAddress(accounts[2]).call();
             assert.strictEqual(Number(nftDeedIds[0]), 1);
@@ -518,8 +522,8 @@ describe("Inheritance contract", async () => {
 
         it("should not allow if the address sent doesn't match with any of the heirs", async () => {
             await assert.rejects(
-                inheritance.methods.addNFTDeed(accounts[4], 1).send({ from: accounts[0], gas: "10000000" }),
-                /Not heir address matched to the one sent./
+                inheritance.methods.addNFTDeed(1, accounts[4]).send({ from: accounts[0], gas: "10000000" }),
+                /New heir address not found among heirs./
             );
         });
     });
@@ -597,13 +601,30 @@ describe("Inheritance contract", async () => {
 
             await inheritance.methods.acceptInheritanceRequest(index, accounts[2], share).send({ from: accounts[0], gas: "10000000" });
 
-            const heirs = await inheritance.methods.getHeirs().call();
-            const expectedHeirs = [accounts[2]];
+            const heir = await inheritance.methods.getHeirByAddress(accounts[2]).call();
 
-            assert.deepStrictEqual([heirs[0].heir], expectedHeirs);
-            assert.strictEqual(Number(heirs[0].share), share);
+            assert.deepStrictEqual(heir.heir, accounts[2]);
+            assert.strictEqual(Number(heir.share), share);
         });
     });
+
+    describe("getHeirByAddress", async () => {
+        it("should return the heir by address", async () => {
+            await inheritance.methods.requestInheritance(accounts[2]).send({ from: accounts[2] });
+
+            const index = 0;
+            const share = 10;
+
+            await inheritance.methods.acceptInheritanceRequest(index, accounts[2], share).send({ from: accounts[0], gas: "10000000" });
+
+            const heir = await inheritance.methods.getHeirByAddress(accounts[2]).call();
+            const expectedHeir = [accounts[2]];
+
+            assert.deepStrictEqual([heir.heir], expectedHeir);
+            assert.strictEqual(Number(heir.share), share);
+        });
+    });
+
 
     describe("getTotalShares", async () => {
         it("should return the current totalShares value", async () => {
@@ -631,9 +652,9 @@ describe("Inheritance contract", async () => {
             await inheritance.methods.requestInheritance(accounts[3]).send({ from: accounts[3] });
             await inheritance.methods.acceptInheritanceRequest(0, accounts[3], 10).send({ from: accounts[0], gas: "10000000" });
 
-            await inheritance.methods.addNFTDeed(accounts[2], 1).send({ from: accounts[0], gas: "10000000" });
-            await inheritance.methods.addNFTDeed(accounts[2], 2).send({ from: accounts[0], gas: "10000000" });
-            await inheritance.methods.addNFTDeed(accounts[3], 3).send({ from: accounts[0], gas: "10000000" });
+            await inheritance.methods.addNFTDeed(1, accounts[2]).send({ from: accounts[0], gas: "10000000" });
+            await inheritance.methods.addNFTDeed(2, accounts[2]).send({ from: accounts[0], gas: "10000000" });
+            await inheritance.methods.addNFTDeed(3, accounts[3]).send({ from: accounts[0], gas: "10000000" });
 
             const nftDeedIds = await inheritance.methods.getNFTDeedsByHeirAddress(accounts[2]).call();
             const expectedNFTDeedIds = ["1", "2"];

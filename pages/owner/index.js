@@ -12,7 +12,7 @@ import OwnerAddress from "../../components/ownerAddress";
 const OwnerPage = () => {
     const [inheritanceContract, setInheritanceContract] = useState(null);
     const [accounts, setAccounts] = useState([]);
-    const [inheritanceAddress, setInheritanceAddress] = useState("");
+    const [inheritanceAddress, setInheritanceAddress] = useState([]);
 
     useEffect(() => {
         const getInheritanceContract = async () => {
@@ -20,9 +20,11 @@ const OwnerPage = () => {
                 await web3.eth.getAccounts().then(async (accounts) => {
                     setAccounts(accounts);
                     await InheritanceFactory.methods.inheritances(accounts[0]).call().then(async (address) => {
-                        setInheritanceAddress(address);
+                        console.log(address);
+                        setInheritanceAddress([address]);
                         const inheritanceContract = await new web3.eth.Contract(Inheritance.abi, address);
                         setInheritanceContract(inheritanceContract);
+                        console.log(inheritanceContract);
                     });
                 });
             } catch (error) {

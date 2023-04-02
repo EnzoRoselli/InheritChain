@@ -63,6 +63,7 @@ contract Inheritance is Ownable {
     //ADMINISTRATOR VARIABLES
     Administrator public administrator;
     uint256 private aliveTimeOut; // Time limit for the administrator to send a signal to show he is alive.
+    bool private isInheritanceClaimed; // Flag to check if the inheritance has been claimed.
 
     //HEIR VARIABLES
     Heir[] private heirs; // We want a maximum of 100 heirs.
@@ -236,15 +237,13 @@ contract Inheritance is Ownable {
             uint256 usdcInheritance = getUSDCBalance();
             uint256 etherInheritance = getEtherBalance();
 
-            uint256 totalShares = getTotalShares();
-
             for (uint i = 0; i < heirs.length; i++) {
                 heirsUSDC[heirs[i].heir] =
                     (heirs[i].share * usdcInheritance) /
-                    totalShares;
+                    100;
                 heirsEther[heirs[i].heir] =
                     (heirs[i].share * etherInheritance) /
-                    totalShares;
+                    100;
             }
 
             address heirAddress;
@@ -270,6 +269,8 @@ contract Inheritance is Ownable {
                     heirs[i].usdcBalance
                 );
             }
+
+            isInheritanceClaimed = true;
         }
     }
 
@@ -363,6 +364,15 @@ contract Inheritance is Ownable {
         return heirs;
     }
 
+    function getHeirByAddress(address heirAddress) public view returns (Heir memory) {
+        for (uint256 i = 0; i < heirs.length; i++) {
+            if (heirs[i].heir == heirAddress) {
+                return heirs[i];
+            }
+        }
+        require(false, "Heir not found.");
+    }
+
     function getTotalShares() public view returns (uint256) {
         uint256 totalShares = 0;
         for (uint i = 0; i < heirs.length; i++) {
@@ -391,6 +401,10 @@ contract Inheritance is Ownable {
                 return heirs[i].NFTDeedIds;
             }
         }
+    }
+
+    function getIsInheritanceClaimed() public view returns (bool) {
+        return isInheritanceClaimed;
     }
 
     //MODIFIERS

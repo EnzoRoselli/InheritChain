@@ -223,4 +223,23 @@ describe("Heirs Administration contract", async () => {
             assert.strictEqual(hasRejectedInheritances, false);
         });
     });
+
+    describe("hasApprovedInheritances", () => {
+        it("returns true when there is an approved inheritance", async () => {
+            await heirsAdministration.methods.addPendingInheritance(inheritanceAddress).send({ from: accounts[0], gas: "10000000" });
+
+            const inheritance = await new web3.eth.Contract(compiledInheritance.abi, inheritanceAddress);
+            await inheritance.methods.acceptInheritanceRequest(0, accounts[0], 50).send({ from: accounts[0], gas: "10000000" });
+
+            await heirsAdministration.methods.updatePendingInheritances().send({ from: accounts[0], gas: "10000000" });
+
+            const hasApprovedInheritances = await heirsAdministration.methods.hasApprovedInheritances().call({ from: accounts[0], gas: "10000000" });
+            assert.strictEqual(hasApprovedInheritances, true);
+        });
+
+        it("returns false when no approved inheritances", async () => {
+            const hasApprovedInheritances = await heirsAdministration.methods.hasApprovedInheritances().call({ from: accounts[0], gas: "10000000" });
+            assert.strictEqual(hasApprovedInheritances, false);
+        });
+    });
 });

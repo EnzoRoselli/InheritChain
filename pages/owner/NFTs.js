@@ -124,8 +124,8 @@ const NFTs = () => {
                 return response.pinataURL;
             }
         }
-        catch (e) {
-            console.log("error uploading JSON metadata:", e)
+        catch (error) {
+            console.log("error uploading JSON metadata:", error)
             setUploadNFTErrorMessage("Error uploading metadata to Pinata. Please try again.");
         }
     }
@@ -156,7 +156,7 @@ const NFTs = () => {
             }
 
         } catch (error) {
-            console.log("error uploading NFT in ethereum blockchain:", e)
+            console.log("error uploading NFT in ethereum blockchain:", error)
             setUploadNFTErrorMessage("Error uploading the NFT. Please try again.");
         } finally {
             setUploadingNFT(false);
@@ -208,7 +208,7 @@ const NFTs = () => {
             <Layout>
                 <Container style={{ maxWidth: '100px', paddingTop: '2rem' }}>
                     <div style={{ maxWidth: '600px', margin: '0 auto' }}>
-                        <Card fluid>
+                        <Card fluid color="purple">
                             <Card.Content>
                                 <Card.Header textAlign="center">Cargar documento</Card.Header>
                                 <Card.Description>
@@ -288,19 +288,19 @@ const NFTs = () => {
                                         <Divider />
                                         <Form>
                                             <Form.Field>
-                                                <label>Current Heir:</label>
-                                                <span>{nft.heir === ZERO_ADDRESS ? "Not assigned" : nft.heir}</span>
+                                                <label>Heredero Actual:</label>
+                                                <span>{nft.heir === ZERO_ADDRESS ? "Sin asignar" : nft.heir}</span>
                                             </Form.Field>
                                             <Form.Field>
-                                                <label>Select New Heir:</label>
+                                                <label>Elige un Nuevo Heredero:</label>
                                                 <Dropdown
-                                                    placeholder="Select heir"
+                                                    placeholder="Elige heredero"
                                                     fluid
                                                     selection
                                                     value={selectedHeirs[nft.tokenId] || nft.heir || ""}
                                                     onChange={(event, data) => handleHeirSelection(nft.tokenId, event, data)}
                                                     options={[
-                                                        { key: "none", value: ZERO_ADDRESS, text: "None" },
+                                                        { key: "none", value: ZERO_ADDRESS, text: "Ninguno" },
                                                         ...heirAddresses.map((heir) => ({
                                                             key: heir,
                                                             value: heir,
@@ -316,7 +316,7 @@ const NFTs = () => {
                                                 loading={nftLoadingStates[nft.tokenId]}
                                                 primary
                                             >
-                                                {nftLoadingStates[nft.tokenId] ? "Changing heir..." : "Change heir"}
+                                                {nftLoadingStates[nft.tokenId] ? "Cambiando heredero..." : "Cambiar Heredero"}
                                             </Button>
 
                                         </Form>

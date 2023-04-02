@@ -203,6 +203,7 @@ const HeirManagement = () => {
                                     <List relaxed>
                                         {inheritanceRequests.map((request, index) => (
                                             <RequestItem
+                                                key={index}
                                                 index={index}
                                                 request={request}
                                                 acceptRequest={acceptRequest}
@@ -220,12 +221,11 @@ const HeirManagement = () => {
                                 <Card.Header>
                                     Herederos actuales
                                     <Progress
-                                        value={totalShares}
-                                        total="100"
-                                        progress="percent"
+                                        percent={totalShares}
                                         color="green"
                                         active
                                         style={{ width: "50%", float: "right" }}
+                                        progress
                                     />
                                 </Card.Header>
                                 <Card.Description style={{ paddingTop: '0' }}>

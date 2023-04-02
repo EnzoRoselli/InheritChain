@@ -176,15 +176,15 @@ describe("InheritanceDeed", () => {
 
             await titleDeed.methods.safeMint("token1").send({ from: accounts[1], gas: "100000000" });
             const tokenId1 = await titleDeed.methods.getLastTokenId().call();
-            await inheritanceContract.methods.addNFTDeed(accounts[1], tokenId1).send({ from: accounts[0], gas: "100000000" });
+            await inheritanceContract.methods.addNFTDeed(tokenId1, accounts[1]).send({ from: accounts[0], gas: "100000000" });
 
             await titleDeed.methods.safeMint("token2").send({ from: accounts[1], gas: "100000000" });
             const tokenId2 = await titleDeed.methods.getLastTokenId().call();
-            await inheritanceContract.methods.addNFTDeed(accounts[1], tokenId2).send({ from: accounts[0], gas: "100000000" });
+            await inheritanceContract.methods.addNFTDeed(tokenId2, accounts[1]).send({ from: accounts[0], gas: "100000000" });
 
             await titleDeed.methods.safeMint("token3").send({ from: accounts[2], gas: "100000000" });
             const tokenId3 = await titleDeed.methods.getLastTokenId().call();
-            await inheritanceContract.methods.addNFTDeed(accounts[2], tokenId3).send({ from: accounts[0], gas: "100000000" });
+            await inheritanceContract.methods.addNFTDeed(tokenId3, accounts[2]).send({ from: accounts[0], gas: "100000000" });
 
             let heirNFT1 = await titleDeed.methods.getElementByTokenId(tokenId1).call({ from: accounts[1] });
             assert.strictEqual(heirNFT1.administrator, accounts[1]);

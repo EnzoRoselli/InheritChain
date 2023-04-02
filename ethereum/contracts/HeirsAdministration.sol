@@ -127,4 +127,8 @@ contract HeirsAdministration {
     function hasRejectedInheritances() public view returns (bool) {
         return rejectedInheritances[msg.sender].length > 0;
     }
+
+    function hasApprovedInheritances() public view returns (bool) {
+        return approvedInheritances[msg.sender].length > 0;
+    }
 }

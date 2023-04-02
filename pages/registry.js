@@ -54,7 +54,7 @@ const RegistryPage = () => {
     setHeirErrorMessage("");
 
     try {
-      router.push("/heir");
+      router.push("/heir/request-inheritance");
     } catch (error) {
       setHeirErrorMessage(`${ERROR_MESSAGES.TRANSACTION_FAILED} ${error.message}`);
     } finally {
