@@ -82,6 +82,8 @@ const NFTs = () => {
     };
 
     const uploadFileToPinata = async (event) => {
+        if (event.target.files.length === 0)
+            return;
         let file = event.target.files[0];
         let fileName = file.name;
         setUploading(true);

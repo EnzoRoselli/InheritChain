@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Grid, Button, Icon, Segment, Card, Image, Popup, Form, Divider, Statistic } from "semantic-ui-react";
+import { Grid, Button, Icon, Segment, Card, Image, Popup, List, Divider, Statistic } from "semantic-ui-react";
 import Layout from "../../components/Layout";
 import web3 from "../../ethereum/web3";
 import Inheritance from "../../ethereum/build/Inheritance.json";
 import OwnerAddress from "../../components/ownerAddress";
 import HeirsAdministration from "../../ethereum/heirAdministration";
 import TitleDeed from "../../ethereum/titleDeed";
+import { getMessagesByHeirAddress } from "../../components/js/message";
 
 const HeirPage = () => {
     const [inheritanceContract, setInheritanceContract] = useState(null);
@@ -19,6 +20,7 @@ const HeirPage = () => {
     const [usdcBalance, setUsdcBalance] = useState("");
     const [claimed, setClaimed] = useState({});
     const [claimingInheritance, setClaimingInheritance] = useState(false);
+    const [messages, setMessages] = useState([]);
 
     useEffect(() => {
         const getHeirInformation = async () => {
@@ -53,6 +55,10 @@ const HeirPage = () => {
                     ...prevState,
                     [inheritanceAddress]: isClaimed,
                 }));
+                if (result) {
+                    await fetchMessages();
+                }
+
             } catch (error) {
                 console.log(error);
             }
@@ -69,10 +75,8 @@ const HeirPage = () => {
                 }
 
                 try {
-                    console.log("Checking administrator status...");
                     const result = await inheritanceContract.methods.isAdministratorDead().call();
                     setIsAdministratorDead(result);
-                    console.log("Administrator status:", result);
                 } catch (error) {
                     console.error("Error checking administrator status:", error);
                 }
@@ -115,6 +119,16 @@ const HeirPage = () => {
             setHeirNFTs(nfts);
         } catch (error) {
             console.error("Error fetching user NFTs:", error);
+        }
+    };
+
+    const fetchMessages = async () => {
+        try {
+            const accounts = await web3.eth.getAccounts();
+            const messages = await getMessagesByHeirAddress(accounts[0], inheritanceAddress);
+            setMessages(messages.message);
+        } catch (error) {
+            console.error("Error fetching messages:", error);
         }
     };
 
@@ -215,8 +229,8 @@ const HeirPage = () => {
             />
 
             {claimed[inheritanceAddress] || (
-                <Card color={ approvedInheritances.length > 0 ? isAdministratorDead ? "red" : "green" : null} fluid>                    
-                <Card.Content>
+                <Card color={approvedInheritances.length > 0 ? isAdministratorDead ? "red" : "green" : null} fluid>
+                    <Card.Content>
                         <Card.Description>
                             <h1>
                                 El dueño de la herencia esta:{" "}
@@ -292,42 +306,80 @@ const HeirPage = () => {
             </Card>
 
             <div style={{ maxWidth: '110rem', margin: '0 auto', paddingTop: '2rem', paddingBottom: '2rem' }}>
-                <h2 style={{ fontSize: "1.45rem" }}>
-                    {claimed[inheritanceAddress]
-                        ? "NFTs heredados:"
-                        : "NFTs a heredar:"}
-                </h2>
-                {heirNFTs.length > 0 && (
-                    <Segment style={{ marginTop: '-0.7rem' }} raised >
-                        <Card.Group itemsPerRow={3}>
-                            {heirNFTs.map((nft) => (
-                                <Card key={nft.tokenId} color="purple">
-                                    <Image
-                                        src={nft.image}
-                                        wrapped
-                                        ui={false}
-                                        style={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            maxHeight: '300px',
-                                            overflow: 'hidden',
-                                        }}
-                                    />
-                                    <Card.Content>
-                                        <Card.Header>{nft.name}</Card.Header>
-                                        <Card.Meta>Token ID: {nft.tokenId}</Card.Meta>
-                                        <Card.Description
-                                            style={{ height: 'auto', overflow: 'hidden', maxHeight: '100rem' }}
-                                        >
-                                            {nft.description}
-                                        </Card.Description>
-                                    </Card.Content>
-                                </Card>
-                            ))}
-                        </Card.Group>
-                    </Segment>
-                )}
+                {/* <Segment style={{ marginTop: '-0.7rem' }} raised> */}
+                    <Card.Group itemsPerRow={1}>
+                        <Card>
+                            <Card.Content>
+                                <Card.Header textAlign="center">
+                                    {claimed[inheritanceAddress]
+                                        ? "NFTs heredados"
+                                        : "NFTs a heredar"}
+                                </Card.Header>
+                                <Divider />
+                                <Card.Description>
+                                    {heirNFTs.length > 0 ? (
+                                        <Card.Group itemsPerRow={3}>
+                                            {heirNFTs.map((nft) => (
+                                                <Card key={nft.tokenId} color="purple">
+                                                    <Image
+                                                        src={nft.image}
+                                                        wrapped
+                                                        ui={false}
+                                                        style={{
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            maxHeight: '300px',
+                                                            overflow: 'hidden',
+                                                        }}
+                                                    />
+                                                    <Card.Content>
+                                                        <Card.Header>{nft.name}</Card.Header>
+                                                        <Card.Meta>Token ID: {nft.tokenId}</Card.Meta>
+                                                        <Card.Description
+                                                            style={{ height: 'auto', overflow: 'hidden', maxHeight: '100rem' }}
+                                                        >
+                                                            {nft.description}
+                                                        </Card.Description>
+                                                    </Card.Content>
+                                                </Card>
+                                            ))}
+                                        </Card.Group>
+                                    ) : (
+                                        <p>No hay NFTs disponibles.</p>
+                                    )}
+                                </Card.Description>
+                            </Card.Content>
+                        </Card>
+                    </Card.Group>
+                {/* </Segment> */}
             </div>
+
+            {isAdministratorDead && (
+                <Card style={{ ...cardStyle, marginTop: "2rem" }} raised>
+                    <Card.Content>
+                        <Card.Header textAlign="center">Mensajes</Card.Header>
+                        <Divider />
+                        <Card.Description>
+                            {messages.length > 0 ? (
+                                <List divided relaxed>
+                                    {messages.map((message, index) => (
+                                        <List.Item key={index}>
+                                            <List.Icon name="envelope" size="large" verticalAlign="middle" />
+                                            <List.Content>
+                                                <List.Header as="a">Mensaje {index + 1}</List.Header>
+                                                <List.Description as="a">{message.messageText}</List.Description>
+                                            </List.Content>
+                                        </List.Item>
+                                    ))}
+                                </List>
+                            ) : (
+                                <p>No hay mensajes disponibles.</p>
+                            )}
+                        </Card.Description>
+                    </Card.Content>
+                </Card>
+            )}
+
 
             <div style={{ position: "fixed", bottom: "2rem", right: "2rem" }}>
                 <Popup

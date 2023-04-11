@@ -8,6 +8,7 @@ import DepositWithdrawEther from "../../components/DepositWithdrawEther";
 import DepositWithdrawUSDC from "../../components/DepositWithdrawUSDC";
 import AliveSignal from "../../components/AliveSignal";
 import OwnerAddress from "../../components/ownerAddress";
+import MessageComponent from "../../components/Message";
 
 const OwnerPage = () => {
     const [inheritanceContract, setInheritanceContract] = useState(null);
@@ -58,6 +59,14 @@ const OwnerPage = () => {
                 <Grid.Row>
                     <Grid.Column width={7}>
                         <AliveSignal
+                            inheritanceContract={inheritanceContract}
+                            accounts={accounts}
+                        />
+                    </Grid.Column>
+                </Grid.Row>
+                <Grid.Row>
+                    <Grid.Column>
+                        <MessageComponent 
                             inheritanceContract={inheritanceContract}
                             accounts={accounts}
                         />
